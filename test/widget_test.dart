@@ -1,30 +1,79 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'package:flutter/material.dart';void main() {
+  runApp(MaterialApp(
+    home: DigitalPetApp(),
+  ));
+}
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+class DigitalPetApp extends StatefulWidget {
+  @override
+  _DigitalPetAppState createState() => _DigitalPetAppState();
+}
 
-import 'package:digital_pet_app/main.dart';
+class _DigitalPetAppState extends State<DigitalPetApp> {
+  String petName = "Your Pet";
+  int happinessLevel = 50;
+  int hungerLevel = 50;
 
-void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  void _playWithPet() {
+    setState(() {
+      happinessLevel += 10;
+      _updateHunger();
+    });
+  }
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  void _feedPet() {
+    setState(() {
+      hungerLevel -= 10;
+      _updateHappiness();
+    });
+  }
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  void _updateHappiness() {
+    if (hungerLevel < 30) {
+      happinessLevel -= 20;
+    } else {
+      happinessLevel += 10;
+    }
+  }
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
+  void _updateHunger() {
+    setState(() {
+      hungerLevel += 5;
+      if (hungerLevel > 100) {
+        hungerLevel = 100;
+        happinessLevel -= 20;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Digital Pet'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('Name: $petName', style: TextStyle(fontSize: 20.0)),
+            SizedBox(height: 16.0),
+            Text('Happiness Level: $happinessLevel', style: TextStyle(fontSize: 20.0)),
+            SizedBox(height: 16.0),
+            Text('Hunger Level: $hungerLevel', style: TextStyle(fontSize: 20.0)),
+            SizedBox(height: 32.0),
+            ElevatedButton(
+              onPressed: _playWithPet,
+              child: Text('Play with Your Pet'),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _feedPet,
+              child: Text('Feed Your Pet'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
