@@ -17,8 +17,128 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   String petName = "FORTRESS DOG";
   int happinessLevel = 50;
   int hungerLevel = 50;
+  int energyLevel = 70; 
+
+String selectedActivity = "Play"; 
+final List<String> activities = ["Play", "Run", "Sleep"];
+
    final TextEditingController _nameController = TextEditingController();
    Timer? _hungerTimer;
+
+void _checkWinLoss() {
+  // LOSS: too hungry or too unhappy
+  if (hungerLevel >= 100 || happinessLevel <= 0) {
+    _showEndDialog(
+      title: "Game Over",
+      message: "Your pet is not doing well. Try again!",
+    );
+    return;
+  }
+
+  // WIN: very happy and not too hungry
+  if (happinessLevel >= 100 && hungerLevel <= 30) {
+    _showEndDialog(
+      title: "You Win!",
+      message: "Your pet is thriving! Great job!",
+    );
+    return;
+  }
+}
+void _showEndDialog({required String title, required String message}) {
+  // Prevent multiple dialogs stacking
+  if (!mounted) return;
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                // Reset game
+                happinessLevel = 50;
+                hungerLevel = 50;
+                petName = "Your Pet";
+              });
+            },
+            child: const Text("Restart"),
+          ),
+        ],
+      );
+    },
+  );
+}
+void _clampStats() {
+  if (happinessLevel > 100) happinessLevel = 100;
+  if (happinessLevel < 0) happinessLevel = 0;
+
+  if (hungerLevel > 100) hungerLevel = 100;
+  if (hungerLevel < 0) hungerLevel = 0;
+
+  if (energyLevel > 100) energyLevel = 100;
+  if (energyLevel < 0) energyLevel = 0;
+}
+void _doSelectedActivity() {
+  setState(() {
+    switch (selectedActivity) {
+      case "Play":
+        happinessLevel += 12;
+        hungerLevel += 6;
+        energyLevel -= 10;
+        break;
+
+      case "Run":
+        happinessLevel += 18;
+        hungerLevel += 12;
+        energyLevel -= 20;
+        break;
+
+      case "Sleep":
+        energyLevel += 25;
+        hungerLevel += 8;
+        happinessLevel += 4;
+        break;
+    }
+
+    _clampStats();
+    _checkWinLoss(); 
+  });
+}
+
+void _playWithPet() {
+  setState(() {
+    happinessLevel += 10;
+    hungerLevel += 5;
+
+    if (happinessLevel > 100) happinessLevel = 100;
+    if (hungerLevel > 100) hungerLevel = 100;
+
+    _checkWinLoss();
+  });
+}
+@override
+void initState() {
+  super.initState();
+  _hungerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    setState(() {
+      
+      hungerLevel += 2;
+
+      energyLevel -= 1;
+      if (hungerLevel >= 80) {
+        energyLevel -= 1;
+      }
+
+      _clampStats();
+      _checkWinLoss();
+    });
+  });
+}
 
 
 
@@ -31,20 +151,25 @@ void dispose() {
   super.dispose();
 }
 
+void _feedPet() {
+  setState(() {
+    hungerLevel -= 10;
+    if (hungerLevel < 0) hungerLevel = 0;
 
-  void _playWithPet() {
-    setState(() {
-      happinessLevel += 10;
-      _updateHunger();
-    });
-  }
+    // Feeding affects happiness depending on hunger
+    if (hungerLevel < 30) {
+      happinessLevel -= 5; // still kinda hungry
+    } else {
+      happinessLevel += 10; // satisfied
+    }
 
-  void _feedPet() {
-    setState(() {
-      hungerLevel -= 10;
-      _updateHappiness();
-    });
-  }
+    if (happinessLevel > 100) happinessLevel = 100;
+    if (happinessLevel < 0) happinessLevel = 0;
+
+    _checkWinLoss();
+  });
+}
+
 void _setPetName() {
   setState(() {
     final typed = _nameController.text.trim();
@@ -55,23 +180,6 @@ void _setPetName() {
   });
 }
 
-  void _updateHappiness() {
-    if (hungerLevel < 30) {
-      happinessLevel -= 20;
-    } else {
-      happinessLevel += 10;
-    }
-  }
-
-  void _updateHunger() {
-    setState(() {
-      hungerLevel += 5;
-      if (hungerLevel > 100) {
-        hungerLevel = 100;
-        happinessLevel -= 20;
-      }
-    });
-  }
   String _getMoodText() {
   if (hungerLevel >= 80) return "Starving 😫";
   if (hungerLevel >= 60) return "Hungry 😕";
@@ -142,6 +250,23 @@ const SizedBox(height: 20.0),
             SizedBox(height: 16.0),
             Text('Hunger Level: $hungerLevel', style: TextStyle(fontSize: 20.0)),
             SizedBox(height: 32.0),
+           
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text("Energy Level: $energyLevel", style: const TextStyle(fontSize: 18.0)),
+      const SizedBox(height: 6.0),
+      LinearProgressIndicator(
+        value: energyLevel / 100,
+        minHeight: 10,
+      ),
+    ],
+  ),
+),
+const SizedBox(height: 16.0),
+
             ElevatedButton(
               onPressed: _playWithPet,
               child: Text('Play with Your Pet'),
