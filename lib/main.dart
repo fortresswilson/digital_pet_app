@@ -22,6 +22,8 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
 
 
 
+
+
 @override
 void dispose() {
   _hungerTimer?.cancel();
@@ -43,6 +45,15 @@ void dispose() {
       _updateHappiness();
     });
   }
+void _setPetName() {
+  setState(() {
+    final typed = _nameController.text.trim();
+    if (typed.isNotEmpty) {
+      petName = typed;
+      _nameController.clear();
+    }
+  });
+}
 
   void _updateHappiness() {
     if (hungerLevel < 30) {
@@ -70,6 +81,19 @@ void dispose() {
   if (happinessLevel >= 30) return "Okay 😐";
   return "Sad 😢";
 }
+ColorFilter _petColorFilter() {
+  // More hungry => more red tint
+  if (hungerLevel >= 80) {
+    return ColorFilter.mode(Colors.red.withOpacity(0.75), BlendMode.modulate);
+  }
+  // Very happy => green-ish tint
+  if (happinessLevel >= 80) {
+    return ColorFilter.mode(Colors.green.withOpacity(0.85), BlendMode.modulate);
+  }
+  // Neutral
+  return const ColorFilter.mode(Colors.transparent, BlendMode.multiply);
+}
+
 
 
 
@@ -83,12 +107,32 @@ void dispose() {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-              Image.asset(
-              'assets/Dog.jpg', 
-                width: 200,
-              height: 200,
-               fit: BoxFit.cover,
+            Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+  child: TextField(
+    controller: _nameController,
+    decoration: const InputDecoration(
+      labelText: "Enter pet name",
+      border: OutlineInputBorder(),
+    ),
   ),
+),
+const SizedBox(height: 12.0),
+ElevatedButton(
+  onPressed: _setPetName,
+  child: const Text("Set Name"),
+),
+const SizedBox(height: 20.0),
+
+            ColorFiltered(
+  colorFilter: _petColorFilter(),
+  child: Image.asset(
+    'assets/Dog.jpg',
+    width: 200,
+    height: 200,
+    fit: BoxFit.cover,
+  ),
+),
   const SizedBox(height: 16.0),
             Text('Name: $petName', style: TextStyle(fontSize: 20.0)),
             SizedBox(height: 16.0),
