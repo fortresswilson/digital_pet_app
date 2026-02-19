@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -12,9 +14,21 @@ class DigitalPetApp extends StatefulWidget {
 }
 
 class _DigitalPetAppState extends State<DigitalPetApp> {
-  String petName = "Your Pet";
+  String petName = "FORTRESS DOG";
   int happinessLevel = 50;
   int hungerLevel = 50;
+   final TextEditingController _nameController = TextEditingController();
+   Timer? _hungerTimer;
+
+
+
+@override
+void dispose() {
+  _hungerTimer?.cancel();
+  _nameController.dispose();
+  super.dispose();
+}
+
 
   void _playWithPet() {
     setState(() {
@@ -47,6 +61,17 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
       }
     });
   }
+  String _getMoodText() {
+  if (hungerLevel >= 80) return "Starving 😫";
+  if (hungerLevel >= 60) return "Hungry 😕";
+
+  if (happinessLevel >= 80) return "Super Happy 😄";
+  if (happinessLevel >= 50) return "Happy 🙂";
+  if (happinessLevel >= 30) return "Okay 😐";
+  return "Sad 😢";
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +92,8 @@ class _DigitalPetAppState extends State<DigitalPetApp> {
   const SizedBox(height: 16.0),
             Text('Name: $petName', style: TextStyle(fontSize: 20.0)),
             SizedBox(height: 16.0),
+            Text(_getMoodText(), style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold)),
+             SizedBox(height: 16.0),
             Text('Happiness Level: $happinessLevel', style: TextStyle(fontSize: 20.0)),
             SizedBox(height: 16.0),
             Text('Hunger Level: $hungerLevel', style: TextStyle(fontSize: 20.0)),
